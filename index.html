@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Калькулятор Нефтепродуктов</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #050505;
+    color: #e8e8e8;
+    padding: 12px;
+    line-height: 1.4;
+    font-size: 16px;
+  }
+  .container { max-width: 600px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 400; margin-bottom: 4px; text-align: center; }
+  .subtitle { color: #666; font-size: 13px; margin-bottom: 16px; text-align: center; }
+
+  .card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .card-header .icon { font-size: 26px; }
+  .card-header h2 { font-size: 18px; font-weight: 600; color: #fff; }
+  .card-header .status { 
+    margin-left: auto; 
+    font-size: 12px; 
+    padding: 4px 10px; 
+    border-radius: 20px; 
+    background: #1a1a1a; 
+    color: #555; 
+  }
+  .card-header .status.done { background: #1a3a1a; color: #2ecc71; }
+
+  .input-group { margin-bottom: 14px; }
+  .input-group label { display: block; font-size: 14px; color: #999; margin-bottom: 6px; font-weight: 500; }
+  .input-group input, .input-group select {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1.5px solid #333;
+    border-radius: 12px;
+    padding: 14px 12px;
+    color: #fff;
+    font-size: 18px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .input-group input:focus, .input-group select:focus { border-color: #f39c12; }
+  .input-group .hint { font-size: 12px; color: #444; margin-top: 4px; }
+  .input-group .auto-val { font-size: 13px; color: #f39c12; margin-top: 4px; font-weight: 500; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  .btn {
+    background: #f39c12;
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: transform 0.1s, opacity 0.2s;
+    touch-action: manipulation;
+  }
+  .btn:active { transform: scale(0.97); opacity: 0.9; }
+  .btn-secondary {
+    background: #2a2a2a;
+    color: #ddd;
+  }
+  .btn-total {
+    background: #2ecc71;
+    color: #000;
+    font-size: 19px;
+    padding: 18px;
+  }
+
+  .result-block {
+    background: #0a0a0a;
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 14px;
+    border: 1px solid #1f1f1f;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { font-size: 14px; color: #888; }
+  .result-value { font-size: 18px; font-weight: 700; }
+  .result-value.pos { color: #2ecc71; }
+  .result-value.neg { color: #e74c3c; }
+  .result-value.accent { color: #f39c12; }
+
+  .big-result {
+    text-align: center;
+    padding: 18px 14px;
+    background: #0a0a0a;
+    border-radius: 14px;
+    border: 1.5px solid #1f1f1f;
+    margin-bottom: 14px;
+  }
+  .big-result .label { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .big-result .value { font-size: 32px; font-weight: 800; color: #f39c12; margin-top: 4px; }
+  .big-result .sub { font-size: 14px; color: #555; margin-top: 4px; }
+
+  .total-card {
+    background: #0a1a0a;
+    border: 1.5px solid #2a5a2a;
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 14px;
+  }
+  .total-card h2 { font-size: 18px; font-weight: 700; color: #2ecc71; margin-bottom: 16px; text-align: center; }
+
+  .divider { height: 1px; background: #222; margin: 12px 0; }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 30px !important;
+  }
+</style>
+<base target="_blank">
+</head>
+<body>
+<div class="container">
+  <h1>⛽ Нефтепродукты</h1>
+  <p class="subtitle">Введи тонны — остальное само. Кубы бензовоза → тонны автоматом.</p>
+
+  <!-- БЛОК 1: ТОПЛИВО -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon">⚗️</div>
+      <h2>Топливо</h2>
+      <div class="status" id="statusFuel">не готово</div>
+    </div>
+
+    <div class="input-group">
+      <label>Вид топлива</label>
+      <select id="f_type" onchange="onFuelTypeChange()">
+        <option value="diesel_winter">Дизель зимний</option>
+        <option value="diesel_summer">Дизель летний</option>
+        <option value="diesel_arctic">Дизель арктический</option>
+        <option value="ai92">Бензин АИ-92</option>
+        <option value="ai95">Бензин АИ-95</option>
+        <option value="ai98">Бензин АИ-98</option>
+        <option value="mazut">Мазут М-100</option>
+        <option value="kerosene">Керосин ТС-1</option>
+        <option value="custom">Другое</option>
+      </select>
+    </div>
+
+    <div class="row-2">
+      <div class="input-group">
+        <label>Плотность кг/м³</label>
+        <input type="number" id="f_density" value="840" oninput="recalcFromTon()">
+      </div>
+      <div class="input-group">
+        <label>Температура °C</label>
+        <input type="number" id="f_temp" value="20" oninput="recalcFromTon()">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="auto-val" id="f_densityNote">840 кг/м³ = 0.840 кг/л</div>
+    </div>
+
+    <div class="row-3">
+      <div class="input-group">
+        <label>Тонны</label>
+        <input type="number" id="f_ton" value="20" step="0.001" oninput="recalcFromTon()">
+      </div>
+      <div class="input-group">
+        <label>Кубы</label>
+        <input type="number" id="f_m3" value="23.81" step="0.001" oninput="recalcFromM3()">
+      </div>
+      <div class="input-group">
+        <label>Литры</label>
+        <input type="number" id="f_liter" value="23810" step="1" oninput="recalcFromLiter()">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>Цена закупки</label>
+      <div class="row-2">
+        <input type="number" id="f_price" value="96400" oninput="updatePricePreview()">
+        <select id="f_priceUnit" onchange="updatePricePreview()">
+          <option value="per_ton">₽/тонну</option>
+          <option value="per_liter">₽/литр</option>
+          <option value="per_m3">₽/м³</option>
+        </select>
+      </div>
+      <div class="auto-val" id="f_pricePreview">80.98 ₽/литр | 96 400 ₽/тонну</div>
+    </div>
+
+    <button class="btn" onclick="calcFuel()">🔥 Посчитать топливо</button>
+
+    <div class="result-block" id="fuelResult">
+      <div class="result-row">
+        <span class="result-label">Масса</span>
+        <span class="result-value" id="fr_mass">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Объем</span>
+        <span class="result-value" id="fr_volume">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Цена за литр</span>
+        <span class="result-value accent" id="fr_priceLiter">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Цена за тонну</span>
+        <span class="result-value accent" id="fr_priceTon">—</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-row">
+        <span class="result-label">Закупочная стоимость</span>
+        <span class="result-value accent" id="fr_cost">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- БЛОК 2: БЕНЗОВОЗ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon">🚛</div>
+      <h2>Бензовоз</h2>
+      <div class="status" id="statusTruck">не готово</div>
+    </div>
+
+    <div class="input-group">
+      <label>Тип бензовоза</label>
+      <select id="t_type" onchange="onTruckTypeChange()">
+        <option value="small">Малый (10 м³)</option>
+        <option value="medium" selected>Средний (17 м³)</option>
+        <option value="large">Большой (25 м³)</option>
+        <option value="rail">Ж/Д цистерна (60 м³)</option>
+        <option value="custom">Свой вариант</option>
+      </select>
+    </div>
+
+    <div class="row-2">
+      <div class="input-group">
+        <label>Вместимость м³</label>
+        <input type="number" id="t_volume" value="17" step="0.5" oninput="recalcTruckFromVolume()">
+      </div>
+      <div class="input-group">
+        <label>Грузоподъемность т</label>
+        <input type="number" id="t_capacity" value="14.3" step="0.1" oninput="recalcTruckFromCapacity()">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="auto-val" id="t_capacityNote">При плотности 840: 17 м³ = 14.3 т | Грузоподъемность: 14.3 т</div>
+    </div>
+
+    <div class="input-group">
+      <label>Расстояние км</label>
+      <input type="number" id="t_distance" value="400" oninput="calcTruck()">
+    </div>
+
+    <div class="row-2">
+      <div class="input-group">
+        <label>₽ за 1 км</label>
+        <input type="number" id="t_costPerKm" value="140" oninput="calcTruck()">
+        <div class="hint">В эту сумму уже входит всё: дизель, водитель, амортизация</div>
+      </div>
+      <div class="input-group">
+        <label>₽ за рейс</label>
+        <input type="number" id="t_costPerTrip" value="0" oninput="calcTruck()">
+        <div class="hint">Фикс за рейс (если есть)</div>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="calcTruck()">🚛 Посчитать бензовоз</button>
+
+    <div class="result-block" id="truckResult">
+      <div class="result-row">
+        <span class="result-label">Рейсов</span>
+        <span class="result-value accent" id="tr_trips">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Стоимость доставки</span>
+        <span class="result-value accent" id="tr_deliveryCost">—</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-row">
+        <span class="result-label">Вместимость по объему</span>
+        <span class="result-value" id="tr_maxByVolume">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Вместимость по весу</span>
+        <span class="result-value" id="tr_maxByWeight">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Ограничение</span>
+        <span class="result-value" id="tr_limit">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Загрузка по весу</span>
+        <span class="result-value" id="tr_weightLoad">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Загрузка по объему</span>
+        <span class="result-value" id="tr_volumeLoad">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ОБЩИЙ ИТОГ -->
+  <div class="total-card">
+    <h2>📊 ИТОГО</h2>
+
+    <div class="big-result">
+      <div class="label">Себестоимость за литр</div>
+      <div class="value" id="total_costLiter">—</div>
+      <div class="sub" id="total_costLiterSub">—</div>
+    </div>
+
+    <div class="result-block">
+      <div class="result-row">
+        <span class="result-label">Закупка топлива</span>
+        <span class="result-value" id="total_purchase">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Доставка бензовозом</span>
+        <span class="result-value" id="total_delivery">—</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-row">
+        <span class="result-label">Все расходы</span>
+        <span class="result-value neg" id="total_expenses">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Закупка за литр</span>
+        <span class="result-value accent" id="total_purchaseLiter">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Закупка за тонну</span>
+        <span class="result-value accent" id="total_purchaseTon">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Себестоимость за тонну</span>
+        <span class="result-value" id="total_costTon">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Логистика за литр</span>
+        <span class="result-value" id="total_logisticsLiter">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Логистика за тонну</span>
+        <span class="result-value" id="total_logisticsTon">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Масса партии</span>
+        <span class="result-value" id="total_mass">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Объем партии</span>
+        <span class="result-value" id="total_volume">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Рейсов</span>
+        <span class="result-value accent" id="total_trips">—</span>
+      </div>
+    </div>
+
+    <button class="btn btn-total" onclick="calcTotal()" style="margin-top:14px;">🧮 ПОСЧИТАТЬ ВСЁ</button>
+  </div>
+</div>
+
+<script>
+const fuelTypes = {
+  diesel_winter: { density: 840 },
+  diesel_summer: { density: 860 },
+  diesel_arctic: { density: 820 },
+  ai92: { density: 735 },
+  ai95: { density: 750 },
+  ai98: { density: 765 },
+  mazut: { density: 950 },
+  kerosene: { density: 780 }
+};
+
+const truckTypes = {
+  small: { volume: 10 },
+  medium: { volume: 17 },
+  large: { volume: 25 },
+  rail: { volume: 60 },
+  custom: { volume: 17 }
+};
+
+let fuelData = { ton: 0, m3: 0, liter: 0, cost: 0, pricePerLiter: 0, pricePerTon: 0 };
+let truckData = { trips: 0, deliveryCost: 0, totalLogistics: 0 };
+
+function fm(n) { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+function fn(n, d) { 
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  return n.toLocaleString('ru-RU', {minimumFractionDigits:d, maximumFractionDigits:d}); 
+}
+
+function getAdjustedDensity() {
+  const density = parseFloat(document.getElementById('f_density').value) || 840;
+  const temp = parseFloat(document.getElementById('f_temp').value) || 20;
+  return density + ((20 - temp) * 0.7);
+}
+
+function updateDensityNote() {
+  const d = getAdjustedDensity();
+  document.getElementById('f_densityNote').textContent = 
+    Math.round(d) + ' кг/м³ = ' + (d/1000).toFixed(3) + ' кг/л';
+}
+
+function updateTruckCapacityNote() {
+  const d = getAdjustedDensity();
+  const volume = parseFloat(document.getElementById('t_volume').value) || 0;
+  const capacity = parseFloat(document.getElementById('t_capacity').value) || 0;
+  const byVolume = volume * d / 1000;
+  document.getElementById('t_capacityNote').textContent = 
+    'При ' + Math.round(d) + ' кг/м³: ' + volume + ' м³ = ' + byVolume.toFixed(1) + ' т | Грузоподъемность: ' + capacity + ' т';
+}
+
+function updatePricePreview() {
+  const d = getAdjustedDensity();
+  const price = parseFloat(document.getElementById('f_price').value) || 0;
+  const unit = document.getElementById('f_priceUnit').value;
+
+  let perLiter = 0, perTon = 0;
+
+  if (unit === 'per_ton') {
+    perTon = price;
+    perLiter = price * d / 1000000;
+  } else if (unit === 'per_liter') {
+    perLiter = price;
+    perTon = price * 1000000 / d;
+  } else {
+    perLiter = price / 1000;
+    perTon = price * 1000 / (d / 1000);
+  }
+
+  document.getElementById('f_pricePreview').textContent = 
+    fn(perLiter, 2) + ' ₽/литр | ' + fn(perTon, 0) + ' ₽/тонну';
+}
+
+// === ТОПЛИВО ===
+function recalcFromTon() {
+  updateDensityNote();
+  updatePricePreview();
+  updateTruckCapacityNote();
+  const ton = parseFloat(document.getElementById('f_ton').value);
+  if (isNaN(ton)) return;
+  const d = getAdjustedDensity();
+  const m3 = (ton * 1000) / d;
+  const liter = m3 * 1000;
+  document.getElementById('f_m3').value = m3.toFixed(3);
+  document.getElementById('f_liter').value = Math.round(liter);
+}
+
+function recalcFromM3() {
+  updateDensityNote();
+  updatePricePreview();
+  updateTruckCapacityNote();
+  const m3 = parseFloat(document.getElementById('f_m3').value);
+  if (isNaN(m3)) return;
+  const d = getAdjustedDensity();
+  const liter = m3 * 1000;
+  const ton = (m3 * d) / 1000;
+  document.getElementById('f_ton').value = ton.toFixed(3);
+  document.getElementById('f_liter').value = Math.round(liter);
+}
+
+function recalcFromLiter() {
+  updateDensityNote();
+  updatePricePreview();
+  updateTruckCapacityNote();
+  const liter = parseFloat(document.getElementById('f_liter').value);
+  if (isNaN(liter)) return;
+  const d = getAdjustedDensity();
+  const dkgl = d / 1000;
+  const ton = (liter * dkgl) / 1000;
+  const m3 = liter / 1000;
+  document.getElementById('f_ton').value = ton.toFixed(3);
+  document.getElementById('f_m3').value = m3.toFixed(3);
+}
+
+function onFuelTypeChange() {
+  const type = document.getElementById('f_type').value;
+  if (fuelTypes[type]) {
+    document.getElementById('f_density').value = fuelTypes[type].density;
+    document.getElementById('f_temp').value = 20;
+  }
+  recalcFromTon();
+}
+
+function calcFuel() {
+  const ton = parseFloat(document.getElementById('f_ton').value) || 0;
+  const m3 = parseFloat(document.getElementById('f_m3').value) || 0;
+  const liter = parseFloat(document.getElementById('f_liter').value) || 0;
+  const price = parseFloat(document.getElementById('f_price').value) || 0;
+  const pUnit = document.getElementById('f_priceUnit').value;
+  const d = getAdjustedDensity();
+
+  let cost = 0, pricePerLiter = 0, pricePerTon = 0;
+
+  if (pUnit === 'per_ton') {
+    cost = price * ton;
+    pricePerTon = price;
+    pricePerLiter = price * d / 1000000;
+  } else if (pUnit === 'per_liter') {
+    cost = price * liter;
+    pricePerLiter = price;
+    pricePerTon = price * 1000000 / d;
+  } else {
+    cost = price * m3;
+    pricePerLiter = price / 1000;
+    pricePerTon = price * 1000 / (d / 1000);
+  }
+
+  fuelData = { ton, liter, m3, cost, pricePerLiter, pricePerTon };
+
+  document.getElementById('fr_mass').textContent = fn(ton, 3) + ' т';
+  document.getElementById('fr_volume').textContent = fn(liter, 0) + ' л';
+  document.getElementById('fr_priceLiter').textContent = fn(pricePerLiter, 2) + ' ₽';
+  document.getElementById('fr_priceTon').textContent = fn(pricePerTon, 0) + ' ₽';
+  document.getElementById('fr_cost').textContent = fm(cost);
+
+  document.getElementById('statusFuel').textContent = '✓ готово';
+  document.getElementById('statusFuel').className = 'status done';
+}
+
+// === БЕНЗОВОЗ ===
+function recalcTruckFromVolume() {
+  const volume = parseFloat(document.getElementById('t_volume').value);
+  if (isNaN(volume)) return;
+  const d = getAdjustedDensity();
+  const capacity = volume * d / 1000;
+  document.getElementById('t_capacity').value = capacity.toFixed(1);
+  updateTruckCapacityNote();
+  calcTruck();
+}
+
+function recalcTruckFromCapacity() {
+  const capacity = parseFloat(document.getElementById('t_capacity').value);
+  if (isNaN(capacity)) return;
+  const d = getAdjustedDensity();
+  const volume = (capacity * 1000) / d;
+  document.getElementById('t_volume').value = volume.toFixed(1);
+  updateTruckCapacityNote();
+  calcTruck();
+}
+
+function onTruckTypeChange() {
+  const type = document.getElementById('t_type').value;
+  const t = truckTypes[type];
+  if (t) {
+    document.getElementById('t_volume').value = t.volume;
+    recalcTruckFromVolume();
+  }
+}
+
+function calcTruck() {
+  const volume = parseFloat(document.getElementById('t_volume').value) || 17;
+  const capacity = parseFloat(document.getElementById('t_capacity').value) || 14.3;
+  const distance = parseFloat(document.getElementById('t_distance').value) || 400;
+  const costPerKm = parseFloat(document.getElementById('t_costPerKm').value) || 140;
+  const costPerTrip = parseFloat(document.getElementById('t_costPerTrip').value) || 0;
+
+  const d = getAdjustedDensity();
+  const ton = fuelData.ton > 0 ? fuelData.ton : (parseFloat(document.getElementById('f_ton').value) || 0);
+  const m3 = fuelData.m3 > 0 ? fuelData.m3 : (parseFloat(document.getElementById('f_m3').value) || 0);
+
+  if (ton <= 0) {
+    document.getElementById('tr_trips').textContent = '—';
+    return;
+  }
+
+  const maxByWeight = capacity;
+  const maxByVolume = volume * d / 1000;
+  const maxPerTrip = Math.min(maxByWeight, maxByVolume);
+  const trips = Math.max(1, Math.ceil(ton / maxPerTrip));
+
+  const deliveryCost = (costPerKm * distance * trips) + (costPerTrip * trips);
+
+  const weightLoad = maxByWeight > 0 ? Math.min((ton / trips / maxByWeight) * 100, 100) : 0;
+  const volumeLoad = volume > 0 ? Math.min((m3 / trips / volume) * 100, 100) : 0;
+  const limit = maxByWeight < maxByVolume ? 'Вес' : 'Объем';
+
+  truckData = { trips, deliveryCost, totalLogistics: deliveryCost };
+
+  document.getElementById('tr_trips').textContent = trips;
+  document.getElementById('tr_deliveryCost').textContent = fm(deliveryCost);
+  document.getElementById('tr_maxByVolume').textContent = fn(maxByVolume, 1) + ' т';
+  document.getElementById('tr_maxByWeight').textContent = fn(maxByWeight, 1) + ' т';
+  document.getElementById('tr_limit').textContent = limit;
+  document.getElementById('tr_weightLoad').textContent = fn(weightLoad, 0) + '%';
+  document.getElementById('tr_volumeLoad').textContent = fn(volumeLoad, 0) + '%';
+
+  document.getElementById('statusTruck').textContent = '✓ готово';
+  document.getElementById('statusTruck').className = 'status done';
+}
+
+function calcTotal() {
+  calcFuel();
+  calcTruck();
+
+  const ton = fuelData.ton;
+  const liter = fuelData.liter;
+  const m3 = fuelData.m3;
+
+  const purchase = fuelData.cost;
+  const delivery = truckData.deliveryCost;
+  const totalExpenses = purchase + delivery;
+
+  const costLiter = liter > 0 ? totalExpenses / liter : 0;
+  const costTon = ton > 0 ? totalExpenses / ton : 0;
+  const logisticsLiter = liter > 0 ? truckData.totalLogistics / liter : 0;
+  const logisticsTon = ton > 0 ? truckData.totalLogistics / ton : 0;
+
+  document.getElementById('total_costLiter').textContent = fn(costLiter, 2) + ' ₽';
+  document.getElementById('total_costLiterSub').textContent = 'Себестоимость за тонну: ' + fn(costTon, 0) + ' ₽';
+
+  document.getElementById('total_purchase').textContent = fm(purchase);
+  document.getElementById('total_delivery').textContent = fm(delivery);
+  document.getElementById('total_expenses').textContent = fm(totalExpenses);
+
+  document.getElementById('total_purchaseLiter').textContent = fn(fuelData.pricePerLiter, 2) + ' ₽';
+  document.getElementById('total_purchaseTon').textContent = fn(fuelData.pricePerTon, 0) + ' ₽';
+  document.getElementById('total_costTon').textContent = fn(costTon, 0) + ' ₽';
+  document.getElementById('total_logisticsLiter').textContent = fn(logisticsLiter, 2) + ' ₽';
+  document.getElementById('total_logisticsTon').textContent = fn(logisticsTon, 0) + ' ₽';
+  document.getElementById('total_mass').textContent = fn(ton, 3) + ' т';
+  document.getElementById('total_volume').textContent = fn(liter, 0) + ' л';
+  document.getElementById('total_trips').textContent = truckData.trips;
+}
+
+// Инициализация
+recalcFromTon();
+updatePricePreview();
+updateTruckCapacityNote();
+</script>
+</body>
+</html>
